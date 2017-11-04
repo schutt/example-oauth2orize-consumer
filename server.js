@@ -59,7 +59,8 @@
       if (false) { next(); }
       var request = require('request')
         , options = {
-            url: pConf.protocol + '://' + pConf.host + '/api/exampleauth/me'
+            // url: pConf.protocol + '://' + pConf.host + '/api/exampleauth/me'
+            url: pConf.protocol + '://' + pConf.host + pConf.profileUrl
           , headers: {
               'Authorization': 'Bearer ' + req.user.accessToken
             }
