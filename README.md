@@ -20,3 +20,15 @@ jade public/*.jade
 ```bash
 node server.js 3001
 ```
+
+```
+open http://localhost:3001
+```
+
+## config
+
+```
+oauth-config.js
+
+oauth-consumer-config.js
+```
