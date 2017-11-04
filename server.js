@@ -14,6 +14,7 @@
     , lConf = oauthConfig.consumer
       // for Ward Steward
     , opts = require('./oauth-consumer-config')
+    , redirect = require('connect-redirection')
     ;
 
   if (!connect.router) {
@@ -114,6 +115,7 @@
 
   app
     .use(connect.query())
+    .use(redirect())
     .use(connect.json())
     .use(connect.urlencoded())
     .use(connect.compress())

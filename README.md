@@ -1,2 +1,22 @@
-# Moved
-### [example-oauth2orize-consumer](https://git.daplie.com/coolaj86/example-oauth2orize-consumer) is now at [git.daplie.com/coolaj86/example-oauth2orize-consumer](https://git.daplie.com/coolaj86/example-oauth2orize-consumer)
+## Usage
+
+## Install
+
+```bash
+npm install -g jade
+
+git clone https://github.com/woshiwanting/example-oauth2orize-consumer.git
+
+cd example-oauth2orize-consumer/
+
+npm install
+
+jade public/*.jade
+
+```
+
+## Start
+
+```bash
+node server.js 3001
+```
