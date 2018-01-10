@@ -1,10 +1,14 @@
 (function() {
   'use strict';
 
-  const connect = require('connect');
+  const express = require('express');
   const path = require('path');
   const passport = require('passport');
   const request = require('request');
+
+  const compression = require('compression');
+  const cookieParser = require('cookie-parser');
+  const session = require('express-session');
 
   const User = require('./user');
   const ExampleStrategy = require('./passport-example/strategy').Strategy;
@@ -16,16 +20,10 @@
   // FIXME
   // for Ward Steward
   const opts = require('./oauth-consumer-config');
-  const redirect = require('connect-redirection');
 
   let server;
 
-  // Create the Connect app to manage the middleware defined below.
-  const app = connect();
-
-  if (!connect.router) {
-    connect.router = require('connect_router');
-  }
+  const app = express();
 
   // Passport session setup.
   //   To support persistent login sessions, Passport needs to be able to
@@ -62,13 +60,12 @@
       })
   );
 
-  function route(rest) {
-    rest.get('/externalapi/account', function(req, res, next) {
-      console.log('[using accessToken]', req.user.accessToken);
+  const router = express.Router();
 
-      if (false) {
-        next();
-      }
+  router.get(
+    '/externalapi/account',
+    function(req, res, next) {
+      console.log('[using accessToken]', req.user.accessToken);
 
       const options = {
         url: pConf.protocol + '://' + pConf.host + pConf.profileUrl,
@@ -86,55 +83,65 @@
       }
 
       request(options, callback);
-    });
+    }
+  );
 
-    /*
-     */
-    rest.get('/auth/example-oauth2orize', passport.authenticate('exampleauth', { scope: ['email'] }));
+  router.get(
+    '/auth/example-oauth2orize',
+    passport.authenticate(
+      'exampleauth', {
+        scope: ['email']
+      }
+    )
+  );
 
-    rest.get('/auth/example-oauth2orize/callback',
-      //passport.authenticate('facebook', { successRedirect: '/close.html?accessToken=blar',
-      //                                    failureRedirect: '/close.html?error=foo' }));
-      passport.authenticate('exampleauth', { failureRedirect: '/close.html?error=foo' })
-    );
+  router.get('/auth/example-oauth2orize/callback',
+    passport.authenticate(
+      'exampleauth', {
+        failureRedirect: '/close.html?error=foo'
+      }
+    )
+  );
 
-    rest.get('/auth/example-oauth2orize/callback', function(req, res) {
+  router.get(
+    '/auth/example-oauth2orize/callback',
+    function(req, res) {
       console.log('req.session', req.session);
-      const url = '/success.html' // + '?type=fb'
-      /*
-      + '&accessToken=' + req.session.passport.user.accessToken
-      + '&email=' + req.session.passport.user.profile.email
-      + '&link=' + req.session.passport.user.profile.profileUrl
-      */
-      ;
+      const url = '/success.html';
 
       console.log(url);
       res.statusCode = 302;
       res.setHeader('Location', url);
       res.end('hello');
       // This will pass through to the static module
-      //req.url = url;
-      //next();
-    });
+    }
+  );
 
-    rest.post('/auth/example-oauth2orize/callback', function(req, res /*, next*/ ) {
+  router.post(
+    '/auth/example-oauth2orize/callback',
+    function(req, res) {
       console.log('req.user', req.user);
       res.end('thanks for playing');
-    });
-  }
+    }
+  );
 
   app
-    .use(connect.query())
-    .use(redirect())
-    .use(connect.json())
-    .use(connect.urlencoded())
-    .use(connect.compress())
-    .use(connect.cookieParser())
-    .use(connect.session({ secret: 'keyboard mouse' }))
+    .use(express.query())
+    .use(express.json())
+    .use(express.urlencoded({ extended: false }))
+    .use(compression())
+    .use(cookieParser())
+    .use(
+      session({
+        secret: 'keyboard mouse',
+        resave: false,
+        saveUninitialized: false
+      })
+    )
     .use(passport.initialize())
     .use(passport.session())
-    .use(connect.router(route))
-    .use(connect.static(path.join(__dirname, 'public')));
+    .use(router)
+    .use(express.static(path.join(__dirname, 'public')));
 
   module.exports = app;
 
