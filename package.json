@@ -16,7 +16,7 @@
     "passport": "~0.1.17",
     "passport-http-bearer": "~1.0.1",
     "passport-ldsauth": "~0.9.0",
-    "passport-oauth": "~1.0.0",
+    "passport-oauth2": "~1.4.0",
     "request": "^2.83.0"
   },
   "devDependencies": {}

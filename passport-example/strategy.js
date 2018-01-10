@@ -1,8 +1,7 @@
 // Module dependencies.
 const util = require('util');
-// TODO Change to passport-oauth2.
-const OAuth2Strategy = require('passport-oauth').OAuth2Strategy;
-const InternalOAuthError = require('passport-oauth').InternalOAuthError;
+const OAuth2Strategy = require('passport-oauth2').Strategy;
+const InternalOAuthError = require('passport-oauth2').InternalOAuthError;
 const parse = require('./profile').parse;
 // FIXME This should have its own config, but for simplicity I'm using the main
 //       one, one directory up.
