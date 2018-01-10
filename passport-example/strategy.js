@@ -1,16 +1,12 @@
-'use strict';
-
-/**
- * Module dependencies.
- */
-var util = require('util')
-  , OAuth2Strategy = require('passport-oauth').OAuth2Strategy
-  , InternalOAuthError = require('passport-oauth').InternalOAuthError
-  , parse = require('./profile').parse
-    // XXX note that this should have its own config,
-    // but for simplicity I'm using the main one, one directory up
-  , pConf = require('../oauth-config').provider
-  ;
+// Module dependencies.
+const util = require('util');
+// TODO Change to passport-oauth2.
+const OAuth2Strategy = require('passport-oauth').OAuth2Strategy;
+const InternalOAuthError = require('passport-oauth').InternalOAuthError;
+const parse = require('./profile').parse;
+// FIXME This should have its own config, but for simplicity I'm using the main
+//       one, one directory up.
+const pConf = require('../oauth-config').provider;
 
 /**
  * `Strategy` constructor.
@@ -47,25 +43,20 @@ var util = require('util')
  * @api public
  */
 function Strategy(options, verify) {
-  var me = this
-    ;
-
   options = options || {};
-  options.authorizationURL = 
-    options.authorizationURL || 
+  options.authorizationURL =
+    options.authorizationURL ||
     options.authorizationUrl ||
-    (pConf.protocol + '://' + pConf.host + '/dialog/authorize')
-    ;
+    (pConf.protocol + '://' + pConf.host + '/dialog/authorize');
   options.tokenURL =
     options.tokenURL ||
     options.tokenUrl ||
-    (pConf.protocol + '://' + pConf.host + '/oauth/token')
-    ;
-  
-  OAuth2Strategy.call(me, options, verify);
+    (pConf.protocol + '://' + pConf.host + '/oauth/token');
+
+  OAuth2Strategy.call(this, options, verify);
 
   // must be called after prototype is modified
-  me.name = 'exampleauth';
+  this.name = 'exampleauth';
 }
 
 /**
@@ -88,23 +79,26 @@ util.inherits(Strategy, OAuth2Strategy);
  * @param {Function} done
  * @api protected
  */
-Strategy.prototype.userProfile = function (accessToken, done) {
-  var me = this
-    ;
+Strategy.prototype.userProfile = function(accessToken, done) {
+  const me = this;
 
   me._oauth2.get(
-    pConf.protocol + '://' + pConf.host + pConf.profileUrl
-  , accessToken
-  , function (err, body/*, res*/) {
-      var json
-        , profile
-        ;
+    pConf.protocol + '://' + pConf.host + pConf.profileUrl, accessToken,
+    function(err, body /*, res*/ ) {
+      let json;
+      let profile;
 
-      if (err) { return done(new InternalOAuthError('failed to fetch user profile', err)); }
-      
+      if (err) {
+        return done(new InternalOAuthError('failed to fetch user profile', err));
+      }
+
       if ('string' === typeof body) {
-        try { json = JSON.parse(body); }
-        catch(e) { done(e); return; }
+        try {
+          json = JSON.parse(body);
+        } catch (e) {
+          done(e);
+          return;
+        }
       } else if ('object' === typeof body) {
         json = body;
       }

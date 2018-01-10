@@ -1,8 +1,5 @@
-'use strict';
-
-module.exports.parse = function (json) {
-  var profile = {}
-    ;
+module.exports.parse = function(json) {
+  const profile = {};
 
   profile.id = json.currentUserId;
   /*
@@ -12,6 +9,6 @@ module.exports.parse = function (json) {
                    givenName: json.identity.first_name };
   profile.emails = [{ value: json.identity.email_address }];
   */
-      
+
   return profile;
 };
