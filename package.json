@@ -1,7 +1,7 @@
 {
-  "name": "ward-steward",
-  "version": "0.1.0",
-  "description": "A Tool for YSA wards to track home and visiting teaching",
+  "name": "example-oauth2orize-consumer",
+  "version": "0.2.0",
+  "description": "An example OAuth 2.0 consumer.",
   "main": "server.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
