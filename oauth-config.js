@@ -1,4 +1,7 @@
 module.exports = {
+  app: {
+    sessionSecret: 'very secret key'
+  },
   // Define what OAuth 2.0 server should be used.
   provider: {
     protocol: 'http',

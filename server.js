@@ -13,10 +13,8 @@
   const User = require('./user');
   const ExampleStrategy = require('./passport-example/strategy').Strategy;
 
-  const port = process.argv[2] || 3002;
-  const oauthConfig = require('./oauth-config');
-  const pConf = oauthConfig.provider;
-  const lConf = oauthConfig.consumer;
+  const port = process.argv[2] || 3001;
+  const config = require('./oauth-config');
   const opts = require('./oauth-consumer-config');
 
   let server;
@@ -45,7 +43,7 @@
         // OAuth server that this consumer is connecting to.
         clientID: opts.clientId,
         clientSecret: opts.clientSecret,
-        callbackURL: lConf.protocol + '://' + lConf.host + '/auth/example-oauth2orize/callback'
+        callbackURL: config.consumer.protocol + '://' + config.consumer.host + '/auth/example-oauth2orize/callback'
       },
       function(accessToken, refreshToken, profile, done) {
         User.findOrCreate({ profile: profile }, function(err, user) {
@@ -64,7 +62,7 @@
       console.log('[using accessToken]', req.user.accessToken);
 
       const options = {
-        url: pConf.protocol + '://' + pConf.host + pConf.profileUrl,
+        url: config.provider.protocol + '://' + config.provider.host + config.provider.profileUrl,
         headers: {
           'Authorization': 'Bearer ' + req.user.accessToken
         }
@@ -131,7 +129,7 @@
     .use(cookieParser())
     .use(
       session({
-        secret: 'keyboard mouse',
+        secret: config.app.sessionSecret,
         resave: false,
         saveUninitialized: false
       })

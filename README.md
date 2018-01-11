@@ -18,7 +18,7 @@ jade public/*.jade
 ## Start
 
 ```bash
-node server.js 3001
+node server.js
 ```
 
 ```

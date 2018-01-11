@@ -3,9 +3,7 @@ const util = require('util');
 const OAuth2Strategy = require('passport-oauth2').Strategy;
 const InternalOAuthError = require('passport-oauth2').InternalOAuthError;
 const parse = require('./profile').parse;
-// FIXME This should have its own config, but for simplicity I'm using the main
-//       one, one directory up.
-const pConf = require('../oauth-config').provider;
+const providerConfig = require('../oauth-config').provider;
 
 /**
  * `Strategy` constructor.
@@ -46,11 +44,11 @@ function Strategy(options, verify) {
   options.authorizationURL =
     options.authorizationURL ||
     options.authorizationUrl ||
-    (pConf.protocol + '://' + pConf.host + '/dialog/authorize');
+    (providerConfig.protocol + '://' + providerConfig.host + '/dialog/authorize');
   options.tokenURL =
     options.tokenURL ||
     options.tokenUrl ||
-    (pConf.protocol + '://' + pConf.host + '/oauth/token');
+    (providerConfig.protocol + '://' + providerConfig.host + '/oauth/token');
 
   OAuth2Strategy.call(this, options, verify);
 
@@ -82,7 +80,8 @@ Strategy.prototype.userProfile = function(accessToken, done) {
   const me = this;
 
   me._oauth2.get(
-    pConf.protocol + '://' + pConf.host + pConf.profileUrl, accessToken,
+    providerConfig.protocol + '://' + providerConfig.host + providerConfig.profileUrl,
+    accessToken,
     function(err, body /*, res*/ ) {
       let json;
       let profile;
