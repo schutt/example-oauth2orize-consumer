@@ -16,7 +16,7 @@ const pConf = require('../oauth-config').provider;
  * Applications must supply a `verify` callback which accepts an `accessToken`,
  * `refreshToken` and service-specific `profile`, and then calls the `done`
  * callback supplying a `user`, which should be set to `false` if the
- * credentials are not valid.  If an exception occured, `err` should be set.
+ * credentials are not valid.  If an exception occurred, `err` should be set.
  *
  * Options:
  *   - `clientID`      your example-oauth2orize application's client id

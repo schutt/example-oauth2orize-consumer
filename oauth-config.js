@@ -1,13 +1,13 @@
 module.exports = {
-  //oAuth server config
+  // Define what OAuth 2.0 server should be used.
   provider: {
-    protocol: "http",
-    host: "localhost:3000",
-    profileUrl: "/api/userinfo"
+    protocol: 'http',
+    host: 'localhost:3000',
+    profileUrl: '/api/userinfo'
   },
-  //client config
+  // Define this 'consumer' server.
   consumer: {
-    protocol: "http",
-    host: "localhost:3001"
+    protocol: 'http',
+    host: 'localhost:3001'
   }
 };

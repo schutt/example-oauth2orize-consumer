@@ -17,21 +17,15 @@
   const oauthConfig = require('./oauth-config');
   const pConf = oauthConfig.provider;
   const lConf = oauthConfig.consumer;
-  // FIXME
-  // for Ward Steward
   const opts = require('./oauth-consumer-config');
 
   let server;
 
-  const app = express();
-
   // Passport session setup.
-  //   To support persistent login sessions, Passport needs to be able to
-  //   serialize users into and deserialize users out of the session.
-  //   Typically, this will be as simple as storing the user ID when
-  //   serializing, and finding the user by ID when deserializing. However,
-  //   since this example does not have a database of user records, the
-  //   complete Facebook profile is serialized and deserialized.
+  // To support persistent login sessions, Passport needs to be able to
+  // serialize users into and deserialize users out of the session. Typically,
+  // this will be as simple as storing the user ID when serializing, and
+  // finding the user by ID when deserializing.
   passport.serializeUser(function(user, done) {
     // TODO In a full example this would create a user record.
     done(null, user);
@@ -47,10 +41,11 @@
 
   passport.use(
     new ExampleStrategy({
-        // see https://github.com/jaredhanson/oauth2orize/blob/master/examples/all-grants/db/clients.js
+        // The client ID and Secret need to match what is being used on the
+        // OAuth server that this consumer is connecting to.
         clientID: opts.clientId,
         clientSecret: opts.clientSecret,
-        callbackURL: lConf.protocol + "://" + lConf.host + "/auth/example-oauth2orize/callback"
+        callbackURL: lConf.protocol + '://' + lConf.host + '/auth/example-oauth2orize/callback'
       },
       function(accessToken, refreshToken, profile, done) {
         User.findOrCreate({ profile: profile }, function(err, user) {
@@ -60,6 +55,7 @@
       })
   );
 
+  // Configure the routes.
   const router = express.Router();
 
   router.get(
@@ -125,6 +121,8 @@
     }
   );
 
+  // Configure the Express application.
+  const app = express();
   app
     .use(express.query())
     .use(express.json())
