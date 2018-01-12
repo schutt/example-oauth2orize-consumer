@@ -58,7 +58,9 @@
 
   router.get('/', (request, response) => response.render('index'));
 
-  router.get('/error', (request, response) => response.render('error'));
+  router.get('/error', (request, response) => {
+    response.render('error', { reason: request.query.error });
+  });
 
   router.get('/success', (request, response) => response.render('success'));
 
@@ -98,8 +100,7 @@
   router.get('/auth/example-oauth2orize/callback',
     passport.authenticate(
       'exampleauth', {
-        // TODO Implement the failure redirect page.
-        failureRedirect: '/close?error=foo'
+        failureRedirect: '/error?error=foo'
       }
     )
   );
