@@ -1,72 +1,80 @@
-(function () {
+(function() {
   'use strict';
 
-  var connect = require('connect')
-    , path = require('path')
-    , passport = require('passport')
-    , User = require('./user')
-    , ExampleStrategy = require('./passport-example/strategy').Strategy
-    , app = connect()
-    , server
-    , port = process.argv[2] || 3002
-    , oauthConfig = require('./oauth-config')
-    , pConf = oauthConfig.provider
-    , lConf = oauthConfig.consumer
-      // for Ward Steward
-    , opts = require('./oauth-consumer-config')
-    , redirect = require('connect-redirection')
-    ;
+  const express = require('express');
+  const path = require('path');
+  const passport = require('passport');
+  const request = require('request');
 
-  if (!connect.router) {
-    connect.router = require('connect_router');
-  }
+  const compression = require('compression');
+  const cookieParser = require('cookie-parser');
+  const session = require('express-session');
+
+  const User = require('./user');
+  const ExampleStrategy = require('./passport-example/strategy').Strategy;
+
+  const port = process.argv[2] || 3001;
+  const config = require('./oauth-config');
+  const opts = require('./oauth-consumer-config');
+
+  let server;
 
   // Passport session setup.
-  //   To support persistent login sessions, Passport needs to be able to
-  //   serialize users into and deserialize users out of the session.  Typically,
-  //   this will be as simple as storing the user ID when serializing, and finding
-  //   the user by ID when deserializing.  However, since this example does not
-  //   have a database of user records, the complete Facebook profile is serialized
-  //   and deserialized.
+  // To support persistent login sessions, Passport needs to be able to
+  // serialize users into and deserialize users out of the session. Typically,
+  // this will be as simple as storing the user ID when serializing, and
+  // finding the user by ID when deserializing.
   passport.serializeUser(function(user, done) {
-    //Users.create(user);
+    // TODO In a full example this would create a user record.
     done(null, user);
   });
 
   passport.deserializeUser(function(obj, done) {
-    var user = obj // Users.read(obj)
-      ;
+    // TODO In a full example this would load a user record, instead of simply
+    //      passing the object through.
+    const user = obj;
 
     done(null, user);
   });
 
-  passport.use(new ExampleStrategy({
-      // see https://github.com/jaredhanson/oauth2orize/blob/master/examples/all-grants/db/clients.js
-      clientID: opts.clientId
-    , clientSecret: opts.clientSecret
-    , callbackURL: lConf.protocol + "://" + lConf.host + "/auth/example-oauth2orize/callback"
-    }
-  , function (accessToken, refreshToken, profile, done) {
-      User.findOrCreate({ profile: profile }, function (err, user) {
-        user.accessToken = accessToken;
-        return done(err, user);
-      });
-    }
-  ));
+  passport.use(
+    new ExampleStrategy({
+        // The client ID and Secret need to match what is being used on the
+        // OAuth server that this consumer is connecting to.
+        clientID: opts.clientId,
+        clientSecret: opts.clientSecret,
+        callbackURL: config.consumer.protocol + '://' + config.consumer.host + '/auth/example-oauth2orize/callback'
+      },
+      function(accessToken, refreshToken, profile, done) {
+        User.findOrCreate({ profile: profile }, function(err, user) {
+          user.accessToken = accessToken;
+          return done(err, user);
+        });
+      })
+  );
 
-  function route(rest) {
-    rest.get('/externalapi/account', function (req, res, next) {
+  // Configure the routes.
+  const router = express.Router();
+
+  router.get('/', (request, response) => response.render('index'));
+
+  router.get('/error', (request, response) => {
+    response.render('error', { reason: request.query.error });
+  });
+
+  router.get('/success', (request, response) => response.render('success'));
+
+  router.get(
+    '/externalapi/account',
+    function(req, res, next) {
       console.log('[using accessToken]', req.user.accessToken);
-      if (false) { next(); }
-      var request = require('request')
-        , options = {
-            // url: pConf.protocol + '://' + pConf.host + '/api/exampleauth/me'
-            url: pConf.protocol + '://' + pConf.host + pConf.profileUrl
-          , headers: {
-              'Authorization': 'Bearer ' + req.user.accessToken
-            }
-          }
-        ;
+
+      const options = {
+        url: config.provider.protocol + '://' + config.provider.host + config.provider.profileUrl,
+        headers: {
+          'Authorization': 'Bearer ' + req.user.accessToken
+        }
+      };
 
       function callback(error, response, body) {
         if (!error && response.statusCode === 200) {
@@ -77,60 +85,72 @@
       }
 
       request(options, callback);
-    });
-    /*
-    */
-    rest.get('/auth/example-oauth2orize', passport.authenticate('exampleauth', { scope: ['email'] }));
-    rest.get('/auth/example-oauth2orize/callback'
-      //passport.authenticate('facebook', { successRedirect: '/close.html?accessToken=blar',
-      //                                    failureRedirect: '/close.html?error=foo' }));
-    , passport.authenticate('exampleauth', { failureRedirect: '/close.html?error=foo' })
-    );
-    rest.get('/auth/example-oauth2orize/callback'
-    , function (req, res) {
-        console.log('req.session');
-        console.log(req.session);
-        var url = '/success.html' // + '?type=fb'
-          /*
-          + '&accessToken=' + req.session.passport.user.accessToken
-          + '&email=' + req.session.passport.user.profile.email
-          + '&link=' + req.session.passport.user.profile.profileUrl
-          */
-          ;
+    }
+  );
 
-        console.log(url);
-        res.statusCode = 302;
-        res.setHeader('Location', url);
-        res.end('hello');
-        // This will pass through to the static module
-        //req.url = url;
-        //next();
+  router.get(
+    '/auth/example-oauth2orize',
+    passport.authenticate(
+      'exampleauth', {
+        scope: ['email']
       }
-    );
-    rest.post('/auth/example-oauth2orize/callback', function (req, res/*, next*/) {
+    )
+  );
+
+  router.get('/auth/example-oauth2orize/callback',
+    passport.authenticate(
+      'exampleauth', {
+        failureRedirect: '/error?error=foo'
+      }
+    )
+  );
+
+  router.get(
+    '/auth/example-oauth2orize/callback',
+    function(req, res) {
+      console.log('req.session', req.session);
+      const url = '/success';
+
+      console.log(url);
+      res.statusCode = 302;
+      res.setHeader('Location', url);
+      res.end('hello');
+      // This will pass through to the static module
+    }
+  );
+
+  router.post(
+    '/auth/example-oauth2orize/callback',
+    function(req, res) {
       console.log('req.user', req.user);
       res.end('thanks for playing');
-    });
-  }
+    }
+  );
 
+  // Configure the Express application.
+  const app = express();
   app
-    .use(connect.query())
-    .use(redirect())
-    .use(connect.json())
-    .use(connect.urlencoded())
-    .use(connect.compress())
-    .use(connect.cookieParser())
-    .use(connect.session({ secret: 'keyboard mouse' }))
+    .set('view engine', 'ejs')
+    .use(express.query())
+    .use(express.json())
+    .use(express.urlencoded({ extended: false }))
+    .use(compression())
+    .use(cookieParser())
+    .use(
+      session({
+        secret: config.app.sessionSecret,
+        resave: false,
+        saveUninitialized: false
+      })
+    )
     .use(passport.initialize())
     .use(passport.session())
-    .use(connect.router(route))
-    .use(connect.static(path.join(__dirname, 'public')))
-    ;
+    .use(router);
 
   module.exports = app;
 
   if (require.main === module) {
-    server = app.listen(port, function () {
+    server = app.listen(port, function() {
       console.log('Listening on', server.address());
     });
   }
