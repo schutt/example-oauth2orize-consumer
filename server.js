@@ -56,6 +56,12 @@
   // Configure the routes.
   const router = express.Router();
 
+  router.get('/', (request, response) => response.render('index'));
+
+  router.get('/error', (request, response) => response.render('error'));
+
+  router.get('/success', (request, response) => response.render('success'));
+
   router.get(
     '/externalapi/account',
     function(req, res, next) {
@@ -92,7 +98,8 @@
   router.get('/auth/example-oauth2orize/callback',
     passport.authenticate(
       'exampleauth', {
-        failureRedirect: '/close.html?error=foo'
+        // TODO Implement the failure redirect page.
+        failureRedirect: '/close?error=foo'
       }
     )
   );
@@ -101,7 +108,7 @@
     '/auth/example-oauth2orize/callback',
     function(req, res) {
       console.log('req.session', req.session);
-      const url = '/success.html';
+      const url = '/success';
 
       console.log(url);
       res.statusCode = 302;
@@ -122,6 +129,7 @@
   // Configure the Express application.
   const app = express();
   app
+    .set('view engine', 'ejs')
     .use(express.query())
     .use(express.json())
     .use(express.urlencoded({ extended: false }))
@@ -136,8 +144,7 @@
     )
     .use(passport.initialize())
     .use(passport.session())
-    .use(router)
-    .use(express.static(path.join(__dirname, 'public')));
+    .use(router);
 
   module.exports = app;
 

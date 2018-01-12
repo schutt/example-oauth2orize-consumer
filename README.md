@@ -3,16 +3,11 @@
 ## Install
 
 ```bash
-npm install -g jade
-
 git clone https://github.com/woshiwanting/example-oauth2orize-consumer.git
 
 cd example-oauth2orize-consumer/
 
 npm install
-
-jade public/*.jade
-
 ```
 
 ## Start
